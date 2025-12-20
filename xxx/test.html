@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>gifler demo</title>
+    <style>
+        body {
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            background: #222;
+            border: 1px solid #555;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas" width="400" height="300"></canvas>
+
+<script src="https://unpkg.com/gifler@0.1.0/gifler.min.js"></script>
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+// 表示位置
+let x1 = 170;
+let y1 = 150;
+
+// gifler の描画先として canvas を指定
+function instantCanvas(ctx, frame) {
+    // 毎フレーム消す（残像防止）
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.drawImage(
+        frame.buffer,
+        x1,
+        y1 - 50,
+        64,
+        64
+    );
+}
+
+// GIF 読み込み＆再生
+gifler("at_effect.gif")
+    .frames(canvas, instantCanvas);
+</script>
+
+</body>
+</html>
