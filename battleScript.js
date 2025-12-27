@@ -1,24 +1,66 @@
+class Mikata{
+    constructor(hp,at,mikataChip){
+        this.mikataChip = mikataChip //味方
+        this.x = instantCanvas.width-200
+        this.y = 450
+        this.hp = hp//体力
+        this.at = at//攻撃
+        this.kemuriChip = new Image()//敵
+        this.kemuriChip.src = "img/kemuriChip.png";
+        this.frame = 0//煙をアニメーションするために必要なフレーム数
+        this.maisuu = 0//煙のChipの枚数
+        this.kw = 0 //煙のエフェクト幅
+        this.kh = 0//煙のエフェクト高さ
+    }
+    update(){
+        this.x -= 0.3
+    }
+    hantei(teki){//当たり判定を受けた時の関数
+        this.hp -= teki.at
+        this.frame += 1
+        if (this.frame>30){
+            this.frame = 0
+            this.maisuu += 1
+            this.kw = 200*this.maisuu
+            if(this.maisuu > 7){
+               this.maisuu = 0 
+            }
+            ctx.drawImage(this.kemuriChip,this.kw,this.kh,200,200,this.x-20,this.y+40,50,50)
+        }
+    }
+    draw(){
+        ctx.drawImage(this.mikataChip,0,0,100,100,this.x,this.y,100,100)
+    }
+}
+class Teki{
+    constructor(hp,at,tekiChip){
+        this.x = 150
+        this.y = 450
+        this.hp = hp//体力
+        this.at = at//攻撃
+        this.tekiChip = tekiChip
+    }
+    update(){
+        this.x += 0.3;
+    }
+    hantei(mikata){
+        this.hp -= mikata.at
+    }
+    draw(){
+        ctx.drawImage(this.tekiChip,0,100,100,100,this.x,this.y,100,100)
+    }
+}
+
+//-------------------------------------------------------------------------------------------------------------------
+
 const instantCanvas = document.getElementById("bCanvas");//clearRectやfillRectではctxではなくinstantCanvasで使うこと！<-
 const ctx = instantCanvas.getContext("2d");
-let x1 = instantCanvas.width-200
-let y1 = 450
-let x2 = 150
-let y2 = 450
-let hp1 = 120
-let hp2 = 100
-let at1 = 1
-let at2 = 1
-let kw = 0 //煙のエフェクトの幅
-let kh = 0 //煙のエフェクトの高さ
-let frame = 0
-let maisuu = 0
-let hitEffect = false;
 const backGround = new Image()
 backGround.src = "img/haikei.png";
 const characterChip = new Image()
 characterChip.src = "img/characterChip.png";
-const kemuriChip = new Image()
-kemuriChip.src = "img/kemuriChip.png";
+const mikata = new Mikata(50,1,characterChip)
+const teki = new Teki(80,1,characterChip)
 characterChip.onload = function(){
     animation()
 }
@@ -26,29 +68,16 @@ characterChip.onload = function(){
 function animation(){
     ctx.clearRect(0,0,instantCanvas.width,instantCanvas.height)
     ctx.drawImage(backGround,0,0)
-    frame += 1
-    if (x1+30 < x2 + 100 && x1 + 100 > x2){
+    if (mikata.x+30 < teki.x + 100 && mikata.x + 100 > teki.x){
         console.log("当たり判定")
-        hp1 -= at1
-        hp2 -= at2
-
-        if (frame>30){
-            frame = 0
-            maisuu += 1
-            kw = 200*maisuu
-            if(maisuu > 7){
-               maisuu = 0 
-            }
-        }
-        ctx.drawImage(kemuriChip,0,0,200,200,x1-20,y1+40,50,50)
-        ctx.drawImage(kemuriChip,kw,kh,kw+200,kh+200,x1-20,y1+40,50,50)
-        console.log(kw,kh)
+        mikata.hantei(teki)
+        teki.hantei(mikata)
     }else{
-        x1 -= 0.3
-        x2 += 0.3
+        mikata.update()
+        teki.update()
     }
-    ctx.drawImage(characterChip,0,0,100,100,x1,y1,100,100)
-    ctx.drawImage(characterChip,0,100,100,100,x2,y2,100,100)
+    mikata.draw()
+    teki.draw()
     requestAnimationFrame(animation)
 }
 
