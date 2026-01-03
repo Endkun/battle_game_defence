@@ -11,7 +11,6 @@ class Mikata{
         this.maisuu = 0//煙のChipの枚数
         this.kw = 0 //煙のエフェクト幅
         this.kh = 0//煙のエフェクト高さ
-        
     }
     update(){
         this.x -= 0.3
@@ -40,12 +39,9 @@ class Teki{
         this.hp = hp//体力
         this.at = at//攻撃
         this.tekiChip = tekiChip
-        this.isBattle = false
     }
     update(){
-        if (this.isBattle == false){
-            this.x += 0.3;
-        }
+        this.x += 0.3;
     }
     hantei(mikata){
         this.hp -= mikata.at
@@ -82,15 +78,12 @@ function animation(){
             console.log("当たり判定")
             mikata.hantei(teki)
             teki.hantei(mikata)
-            teki.isBattle = true
         }else{
-            teki.isBattle = false
             mikata.update()
         }
-        teki.update()
         mikata.draw()
     }
-
+    teki.update()
     teki.draw()
     requestAnimationFrame(animation)
 }
