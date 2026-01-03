@@ -11,6 +11,7 @@ class Mikata{
         this.maisuu = 0//煙のChipの枚数
         this.kw = 0 //煙のエフェクト幅
         this.kh = 0//煙のエフェクト高さ
+        
     }
     update(){
         this.x -= 0.3
@@ -25,8 +26,8 @@ class Mikata{
             if(this.maisuu > 7){
                this.maisuu = 0 
             }
-            ctx.drawImage(this.kemuriChip,this.kw,this.kh,200,200,this.x-20,this.y+40,50,50)
         }
+        ctx.drawImage(this.kemuriChip,this.kw,this.kh,200,200,this.x-20,this.y+40,50,50)
     }
     draw(){
         ctx.drawImage(this.mikataChip,0,0,100,100,this.x,this.y,100,100)
@@ -39,9 +40,12 @@ class Teki{
         this.hp = hp//体力
         this.at = at//攻撃
         this.tekiChip = tekiChip
+        this.isBattle = false
     }
     update(){
-        this.x += 0.3;
+        if (this.isBattle == false){
+            this.x += 0.3;
+        }
     }
     hantei(mikata){
         this.hp -= mikata.at
@@ -59,7 +63,11 @@ const backGround = new Image()
 backGround.src = "img/haikei.png";
 const characterChip = new Image()
 characterChip.src = "img/characterChip.png";
-const mikata = new Mikata(50,1,characterChip)
+const mikatas = []
+const spawnMikata = document.getElementById("spawnMikata")
+spawnMikata.addEventListener("click",() => {
+    mikatas.push(new Mikata(50,1,characterChip))
+})
 const teki = new Teki(80,1,characterChip)
 characterChip.onload = function(){
     animation()
@@ -68,27 +76,21 @@ characterChip.onload = function(){
 function animation(){
     ctx.clearRect(0,0,instantCanvas.width,instantCanvas.height)
     ctx.drawImage(backGround,0,0)
-    if (mikata.x+30 < teki.x + 100 && mikata.x + 100 > teki.x){
-        console.log("当たり判定")
-        mikata.hantei(teki)
-        teki.hantei(mikata)
-    }else{
-        mikata.update()
+    for (let i=0; i < mikatas.length; i++){
+        mikata = mikatas[i]
+        if (mikata.x+30 < teki.x + 100 && mikata.x + 100 > teki.x){
+            console.log("当たり判定")
+            mikata.hantei(teki)
+            teki.hantei(mikata)
+            teki.isBattle = true
+        }else{
+            teki.isBattle = false
+            mikata.update()
+        }
         teki.update()
+        mikata.draw()
     }
-    mikata.draw()
+
     teki.draw()
     requestAnimationFrame(animation)
 }
-
-// 来週やる事
-// ・地面を作る
-// ・キャンバスを枠で囲う
-// ・キャラクターチップの画像の透明化
-// ・高さ合わせる
-// ・お互いのキャラクターにHP(hit point)/AP(attack point)を作る
-// ・↑をもとに戦わせる
-// ・煙のようなエフェクトを付ける
-// ・軽い攻撃＆移動のアニメーション
-// 早めにできたら
-// ・ボタンを作って押したら味方が出現する
