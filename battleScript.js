@@ -1,3 +1,13 @@
+const instantCanvas = document.getElementById("bCanvas");//clearRectやfillRectではctxではなくinstantCanvasで使うこと！<-
+const ctx = instantCanvas.getContext("2d");
+const backGround = new Image()
+backGround.src = "img/haikei.png";
+const characterChip = new Image()
+characterChip.src = "img/characterChip.png";
+const mikatas = []
+const spawnMikata = document.getElementById("spawnMikata")
+let isHit = false
+
 class Mikata{
     constructor(hp,at,mikataChip){
         this.mikataChip = mikataChip //味方
@@ -52,6 +62,7 @@ class Teki{
 }
 function function1(){
     console.log("あ")
+    mikatas.push(new Mikata(50,1,characterChip))
 }
 function function2(){
     console.log("い")
@@ -65,39 +76,34 @@ function function4(){
 function function5(){
     console.log("お")
 }
+let isClick = false
+let mouseX = 0
+let mouseY = 0
+instantCanvas.addEventListener("click", (e) => {
+    isClick = true
+    mouseX = e.clientX
+    mouseY = e.clientY
+});
 function button(){
     let x= 10
     let y = 550
     let log = [function1,function2,function3,function4,function5]
     for (let i = 0; i < 5; i++ ){
         ctx.fillRect(i*110,y,80,40)
-        instantCanvas.addEventListener("click", (e) => {
-            if(i*110 < e.clientX && i*110+80 > e.clientX && 550 < e.clientY && 590 > e.clientY){
-                console.log(e.clientY);
+        if(isClick == true){
+            if(i*110 < mouseX && i*110+80 > mouseX && 580 < mouseY && 620 > mouseY){
                 log[i]()
+                //console.log(mouseX,mouseY)
             }
-        });
+        }
     }
+    isClick = false
 }
-//-------------------------------------------------------------------------------------------------------------------
-
-const instantCanvas = document.getElementById("bCanvas");//clearRectやfillRectではctxではなくinstantCanvasで使うこと！<-
-const ctx = instantCanvas.getContext("2d");
-const backGround = new Image()
-backGround.src = "img/haikei.png";
-const characterChip = new Image()
-characterChip.src = "img/characterChip.png";
-const mikatas = []
-const spawnMikata = document.getElementById("spawnMikata")
-let isHit = false
-spawnMikata.addEventListener("click",() => {
-    mikatas.push(new Mikata(50,1,characterChip))
-})
 const teki = new Teki(80,1,characterChip)
 characterChip.onload = function(){
     animation()
 }
-
+//-------------------------------------------------------------------------------------------------------------------
 function animation(){
     ctx.clearRect(0,0,instantCanvas.width,instantCanvas.height)
     ctx.drawImage(backGround,0,0)
