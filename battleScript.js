@@ -50,7 +50,35 @@ class Teki{
         ctx.drawImage(this.tekiChip,0,100,100,100,this.x,this.y,100,100)
     }
 }
-
+function function1(){
+    console.log("あ")
+}
+function function2(){
+    console.log("い")
+}
+function function3(){
+    console.log("う")
+}
+function function4(){
+    console.log("え")
+}
+function function5(){
+    console.log("お")
+}
+function button(){
+    let x= 10
+    let y = 550
+    let log = [function1,function2,function3,function4,function5]
+    for (let i = 0; i < 5; i++ ){
+        ctx.fillRect(i*110,y,80,40)
+        instantCanvas.addEventListener("click", (e) => {
+            if(i*110 < e.clientX && i*110+80 > e.clientX && 550 < e.clientY && 590 > e.clientY){
+                console.log(e.clientY);
+                log[i]()
+            }
+        });
+    }
+}
 //-------------------------------------------------------------------------------------------------------------------
 
 const instantCanvas = document.getElementById("bCanvas");//clearRectやfillRectではctxではなくinstantCanvasで使うこと！<-
@@ -61,6 +89,7 @@ const characterChip = new Image()
 characterChip.src = "img/characterChip.png";
 const mikatas = []
 const spawnMikata = document.getElementById("spawnMikata")
+let isHit = false
 spawnMikata.addEventListener("click",() => {
     mikatas.push(new Mikata(50,1,characterChip))
 })
@@ -78,12 +107,16 @@ function animation(){
             console.log("当たり判定")
             mikata.hantei(teki)
             teki.hantei(mikata)
+            isHit = true
         }else{
             mikata.update()
         }
         mikata.draw()
     }
-    teki.update()
+    if(isHit == false){
+        teki.update()
+    }
     teki.draw()
+    button()
     requestAnimationFrame(animation)
-}
+};

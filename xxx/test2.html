@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ページのタイトル</title>
+</head>
+<body>
+  <canvas id="c" width="900" height="240" style="border:1px solid #ccc"></canvas>
+  <script>
+    const canvas = document.getElementById("c");
+    const ctxa = canvas.getContext("2d");
+    canvas.addEventListener("click", (e) => {
+      console.log(e.clientX);
+    });
+  </script>
+</body>
+</html>
