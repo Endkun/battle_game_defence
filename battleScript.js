@@ -7,12 +7,18 @@ characterChip.src = "img/characterChip.png";
 const mikatas = []
 const spawnMikata = document.getElementById("spawnMikata")
 let isHit = false
-
+let money = 0
+let moneyMax = 1000
+let kankaku = 0
+let kankakuMax = 5
+ctx.font = "30px sans-serif"
+ctx.textBaseline = "top";
+ctx.textAlign = "right";
 class Mikata{
-    constructor(hp,at,mikataChip){
+    constructor(hp,at,mikataChip,mcx,mcy,tag1,tag2){
         this.mikataChip = mikataChip //味方
         this.x = instantCanvas.width-200
-        this.y = 450
+        this.y = Math.floor(Math.random() * 20) + 450
         this.hp = hp//体力
         this.at = at//攻撃
         this.kemuriChip = new Image()//敵
@@ -21,6 +27,17 @@ class Mikata{
         this.maisuu = 0//煙のChipの枚数
         this.kw = 0 //煙のエフェクト幅
         this.kh = 0//煙のエフェクト高さ
+        this.mcx = mcx//キャラクターチップx
+        this.mcy = mcy//キャラクターチップy
+        this.scale = tag1//身長(低身長か中身長か高身長か),低身長は0~100px 中身長は100~150px,高身長は150px以上
+        this.type = tag2//近距離攻撃or遠距離攻撃
+        this.range = 0
+        if (this.type == "近距離"){
+            this.range = 0
+        }
+        if (this.type == "遠距離"){
+            this.range = 50
+        }
     }
     update(){
         this.x -= 0.3
@@ -39,7 +56,15 @@ class Mikata{
         ctx.drawImage(this.kemuriChip,this.kw,this.kh,200,200,this.x-20,this.y+40,50,50)
     }
     draw(){
-        ctx.drawImage(this.mikataChip,0,0,100,100,this.x,this.y,100,100)
+        if (this.scale == "低身長"){ 
+            ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,100,this.x,this.y,100,100)
+        }
+        if (this.scale == "中身長"){ 
+            ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,150,this.x,this.y-50,100,150)
+        }
+        if (this.scale == "高身長"){ 
+            ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,200,this.x,this.y-100,100,200)
+        }
     }
 }
 class Teki{
@@ -57,17 +82,19 @@ class Teki{
         this.hp -= mikata.at
     }
     draw(){
-        ctx.drawImage(this.tekiChip,0,100,100,100,this.x,this.y,100,100)
+        ctx.drawImage(this.tekiChip,0,200,100,100,this.x,this.y,100,100)
     }
 }
 function function1(){
     console.log("あ")
-    mikatas.push(new Mikata(50,1,characterChip))
+    mikatas.push(new Mikata(50,1,characterChip,0,0,"低身長","近距離"))
+    
 }
 function function2(){
-    console.log("い")
+    mikatas.push(new Mikata(50,1,characterChip,0,100,"低身長","近距離"))
 }
 function function3(){
+    mikatas.push(new Mikata(50,1,characterChip,0,300,"高身長","遠距離"))
     console.log("う")
 }
 function function4(){
@@ -84,33 +111,55 @@ instantCanvas.addEventListener("click", (e) => {
     mouseX = e.clientX
     mouseY = e.clientY
 });
-function button(){
+function characterButton(m1,m2,m3,m4,m5){
     let x= 10
     let y = 550
     let log = [function1,function2,function3,function4,function5]
+    let onMoney = [m1,m2,m3,m4,m5]
     for (let i = 0; i < 5; i++ ){
-        ctx.fillRect(i*110,y,80,40)
-        if(isClick == true){
-            if(i*110 < mouseX && i*110+80 > mouseX && 580 < mouseY && 620 > mouseY){
-                log[i]()
-                //console.log(mouseX,mouseY)
+        ctx.fillStyle = "gray";
+        if(money > onMoney[i]){
+            ctx.fillStyle = "white"
+            if(isClick == true){
+                if(140+i*110 < mouseX && 140+i*110+80 > mouseX && 580 < mouseY && 620 > mouseY){
+                    log[i]()
+                    //console.log(mouseX,mouseY)
+                    money -= onMoney[i]
+                }
             }
         }
+        ctx.fillRect(140+i*110,y,80,40)
     }
     isClick = false
+}
+function moneyButton(){
+
+}
+function houdaiButton(){
+    let aaaaaaa= 0
 }
 const teki = new Teki(80,1,characterChip)
 characterChip.onload = function(){
     animation()
 }
 //-------------------------------------------------------------------------------------------------------------------
-function animation(){
+function animation(time){
     ctx.clearRect(0,0,instantCanvas.width,instantCanvas.height)
     ctx.drawImage(backGround,0,0)
+    ctx.fillStyle = "black";
+    ctx.fillText(`${money}/${moneyMax}`,instantCanvas.width-10, 10)
+    kankaku += 1
+    if(money < moneyMax){
+        if(kankaku > kankakuMax){
+            money += 1
+            kankaku = 0
+        }
+    }
     for (let i=0; i < mikatas.length; i++){
         mikata = mikatas[i]
-        if (mikata.x+30 < teki.x + 100 && mikata.x + 100 > teki.x){
+        if (mikata.x+30-mikata.range < teki.x + 100 && mikata.x + 100 > teki.x){
             console.log("当たり判定")
+            console.log(mikata.range)
             mikata.hantei(teki)
             teki.hantei(mikata)
             isHit = true
@@ -123,6 +172,8 @@ function animation(){
         teki.update()
     }
     teki.draw()
-    button()
+    characterButton(50,150,20,1000,1000)
+    moneyButton()
+    houdaiButton()
     requestAnimationFrame(animation)
 };

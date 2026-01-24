@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>にゃんこ風バトル</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #222;
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* 全体ラッパー */
+    .game-wrapper {
+      margin-top: 20px;
+      background: #ddd;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    /* 上部UI */
+    .ui-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .ui-bar button {
+      padding: 6px 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    /* キャンバス */
+    canvas {
+      display: block;
+      background: #fff;
+      border: 2px solid #000;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="game-wrapper">
+
+    <!-- 上部UI -->
+    <div class="ui-bar">
+      <button id="spawnMikata">ねこ出撃 (50円)</button>
+      <button id="walletUp">お財布強化 (200円)</button>
+    </div>
+
+    <!-- ゲーム画面 -->
+    <canvas id="bCanvas" width="800" height="600"></canvas>
+
+  </div>
+
+  <!-- ゲームロジック -->
+  <script src="gpt_battleScript.js"></script>
+</body>
+</html>
