@@ -38,6 +38,7 @@ class Mikata{
         this.kb = 0
         this.maxKb = mkb
         this.kkb = 0
+        this.isHit = false
         if (this.type == "近距離"){
             this.range = 0
         }
@@ -46,18 +47,22 @@ class Mikata{
         }
     }
     update(tekis){
+        this.isHit = false
         for (let i=0; i < tekis.length; i++){
             teki = tekis[i]
             if (this.x+30-this.range < teki.x + 100 && this.x + 100 > teki.x){
                 //console.log("当たり判定")
                 //console.log(this.range)
                 this.hantei(teki)
-                isHit = true
-            }else{
-                this.x -= 0.3
+                this.isHit = true
+                console.log("a")
+                break//あたったらfor文でbreakすることによりこれ以上動かないようにする
             }
-            this.draw()
         }
+        if(this.isHit == false){
+            this.x -= 0.3
+        }
+        this.draw()
     }
     hantei(teki){//当たり判定を受けた時の関数
         this.frame += 1
@@ -75,6 +80,15 @@ class Mikata{
             this.atsframe = 0
         }
         ctx.drawImage(this.kemuriChip,this.kw,this.kh,200,200,this.x-20,this.y+40,50,50)
+        this.kkb = this.maxHp * (1 - this.kb / this.maxKb)
+        if (this.hp <= this.kkb){
+            this.x += 50
+            this.kb += 1
+        }
+        if(this.hp <= 0){
+            console.log("死亡")
+            this.x = -1000
+        }
     }
     draw(){
         if (this.scale == "低身長"){ 
@@ -89,9 +103,9 @@ class Mikata{
     }
 }
 class Teki{
-    constructor(hp,at,ats,mkb,tekiChip,mcx,mcy,tag1,tag2){
+    constructor(hp,at,ats,mkb,tekiChip,mcx,mcy,tag1,tag2,name){
         this.x = 150
-        this.y = 450
+        this.y = Math.floor(Math.random() * 20) + 450
         this.hp = hp//体力
         this.at = at//攻撃
         this.tekiChip = tekiChip
@@ -113,6 +127,7 @@ class Teki{
         this.kb = 1
         this.maxKb = mkb
         this.kkb = 0
+        this.name = name
         if (this.type == "近距離"){
             this.range = 0
         }
@@ -121,18 +136,20 @@ class Teki{
         }
     }
     update(mikatas){
+        this.isHit = false
         for (let i=0; i < mikatas.length; i++){
             mikata = mikatas[i]
             if (mikata.x+30 < this.x + 100 && mikata.x + 100 > this.x){
                 //console.log("当たり判定,敵側")
                 this.hantei(mikata)
                 this.isHit = true
-            this.draw()
+                break//あたったらfor文でbreakすることによりこれ以上動かないようにする
             }
         }
         if (this.isHit == false){
             this.x += 0.3;
         }
+        this.draw()
     }
     hantei(mikata){
         this.atsframe += 1
@@ -154,14 +171,17 @@ class Teki{
         if(this.atsframe >= this.maxattackspeed*10){
             //console.log("b")
             this.hp -= mikata.at
-            //console.log("敵側hp",this.hp,mikata.at)
+            console.log("敵側hp",this.hp)
             this.atsframe = 0
         }
         this.kkb = this.maxHp * (1 - this.kb / this.maxKb)
         if (this.hp <= this.kkb){
             this.x -= 50
-            this.isHit = false
             this.kb += 1
+        }
+        if(this.hp <= 0){
+            console.log("死亡")
+            this.x = 1000
         }
     }
     draw(){
@@ -227,8 +247,12 @@ characterChip.onload = function(){
     animation()
 }
 //------------------
-const teki1 = new Teki(50,10,40,2,characterChip,0,0,"低身長","近距離")
-tekis = [teki1]
+const teki1 = new Teki(50,10,40,2,characterChip,0,0,"低身長","近距離","a")
+const teki2 = new Teki(100,5,40,2,characterChip,0,0,"低身長","近距離","b")
+const teki3 = new Teki(100,10,40,2,characterChip,0,0,"低身長","近距離","c")
+let tekis = [teki1]
+let saveTekis = [teki2,teki3]
+let tekiSpawnCount = 0
 //-------------------------------------------------------------------------------------------------------------------
 function animation(time){
     ctx.clearRect(0,0,instantCanvas.width,instantCanvas.height)
@@ -236,10 +260,19 @@ function animation(time){
     ctx.fillStyle = "black";
     ctx.fillText(`${money}/${moneyMax}`,instantCanvas.width-10, 10)
     kankaku += 1
+    tekiSpawnCount += 1
     if(money < moneyMax){
         if(kankaku > kankakuMax){
             money += 1
             kankaku = 0
+        }
+    }
+    if(tekiSpawnCount >= 300){
+        if(saveTekis.length >= 1){
+            tekis.push(saveTekis[0])
+            saveTekis.shift();
+            tekiSpawnCount = 0
+            console.log(tekis)
         }
     }
     for (let i=0; i < mikatas.length; i++){
@@ -249,8 +282,8 @@ function animation(time){
     for (let i=0; i < tekis.length; i++){
         teki = tekis[i]
         teki.update(mikatas)
+        teki.draw()
     }
-    teki.draw()
     characterButton(50,150,20,1000,1000)
     moneyButton()
     houdaiButton()
