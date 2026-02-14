@@ -46,20 +46,20 @@ class Mikata{
         }
     }
     update(tekis){
-        this.status = "run"
+        //this.status = "run"
         for (let i=0; i < tekis.length; i++){
             teki = tekis[i]
             if (this.x+30-this.range < teki.x + 100 && this.x + 100 > teki.x){
                 //console.log("当たり判定")
                 //console.log(this.range)
                 this.hantei(teki)
-                this.status = "attack"
+                this.status = "attackChara"
                 console.log("a")
                 break//あたったらfor文でbreakすることによりこれ以上動かないようにする
             }
         }
-        if(this.x <= 150){
-            this.status = "attack"
+        if(this.x <= 150 && this.x >= 0){
+            this.status = "attackCastle"
         }
         if(this.status == "run"){
             this.x -= 0.3
@@ -86,10 +86,13 @@ class Mikata{
         if (this.hp <= this.kkb){
             this.x += 50
             this.kb += 1
+            this.status = "run"
         }
         if(this.hp <= 0){
             console.log("死亡")
             this.status = "dead"
+        }
+        if(this.status == "dead"){
             this.x = -1000
         }
     }
@@ -139,28 +142,38 @@ class Teki{
         }
     }
     update(mikatas){
-        this.status = "run"
         for (let i=0; i < mikatas.length; i++){
             mikata = mikatas[i]
             if (mikata.x+30 < this.x + 100 && mikata.x + 100 > this.x){
                 //console.log("当たり判定,敵側")
-                this.hantei(mikata)
-                this.status = "attack"
+                this.status = "attackChara"
                 break//あたったらfor文でbreakすることによりこれ以上動かないようにする
             }
         }
-        if (this.x >= 580){
-            this.status = "attack"    
+        if (this.x >= 580 && this.x <= 700){
+            this.status = "attackCastle"    
+        }
+        if (this.status == "atackaChara"){
+            this.hantei(mikata)
         }
         if (this.status == "run"){
             this.x += 0.3;
         }
+        if (this.status == "knockback"){
+            this.status = "run"
+            this.x -= 50
+            this.kb += 1
+        }
+        if(this.status == "dead"){
+            this.x = 1000
+        }
         this.draw()
     }
     hantei(mikata){
+        console.log(this.status)
         this.atsframe += 1
         this.frame += 1
-        if(this.status == "attack"){
+        if(this.status == "attackChara"){
             if (this.frame>30){
                 this.frame = 0
                 this.maisuu += 1
@@ -182,13 +195,11 @@ class Teki{
         }
         this.kkb = this.maxHp * (1 - this.kb / this.maxKb)
         if (this.hp <= this.kkb){
-            this.x -= 50
-            this.kb += 1
+            this.status = "knockback"
         }
         if(this.hp <= 0){
             console.log("死亡")
             this.status = "dead"
-            this.x = 1000
         }
     }
     draw(){
@@ -196,7 +207,62 @@ class Teki{
     }
 }
 
-
+class mikataCastle{
+    constructor(){
+        this.hp = 30000
+        this.maxHp = this.hp
+        this.status = "safe" //safe broke 
+    }
+    update(tekis){
+        for (let i = 0; i < tekis.length; i++){
+            teki = tekis[i]
+            if (this.hp <= 0){
+                this.status = "broke"
+                teki.status = "end"
+                console.log("make")
+            }
+            if(teki.status == "attackCastle"){
+                this.hp -= teki.at
+            }
+        }
+        for (let i = 0; i < mikatas.length; i++){
+            mikata = mikatas[i]
+            if(this.status == "broke"){
+                mikata.status = "dead"
+            }
+        }
+    }
+    draw(){
+        ctx.font = "20px Arial";
+        ctx.fillStyle = "black";
+        ctx.fillText(this.hp+"/"+this.maxHp, 770, 300);
+    }
+}
+class tekiCastle{
+    constructor(){
+        this.hp = 30000
+        this.maxHp = this.hp
+        this.status = "safe" //safe broke 
+    }
+    update(mikatas){
+        for (let i = 0; i < mikatas.length; i++){
+            mikata = mikatas[i]
+            if (this.hp <= 0){
+                this.status = "broke"
+                mikata.status = "end"
+                console.log("make")
+            }
+            if(mikata.status == "attackCastle"){
+                this.hp -= mikata.at
+            }
+        }
+    }
+    draw(){
+        ctx.font = "20px Arial";
+        ctx.fillStyle = "black";
+        ctx.fillText(this.hp+"/"+this.maxHp, 770, 300);
+    }
+}
 function function1(){
     console.log("あ")
     mikatas.push(new Mikata(50,10,50,2,characterChip,0,0,"低身長","近距離"))
@@ -260,6 +326,8 @@ const teki3 = new Teki(100,10,40,2,characterChip,0,0,"低身長","近距離","c"
 let tekis = [teki1]
 let saveTekis = [teki2,teki3]
 let tekiSpawnCount = 0
+const mCastle = new mikataCastle()
+const tCastle = new tekiCastle()
 //-------------------------------------------------------------------------------------------------------------------
 function animation(time){
     ctx.clearRect(0,0,instantCanvas.width,instantCanvas.height)
@@ -291,6 +359,8 @@ function animation(time){
         teki.update(mikatas)
         teki.draw()
     }
+    mCastle.update(tekis)
+    mCastle.draw()
     characterButton(50,150,20,1000,1000)
     moneyButton()
     houdaiButton()
