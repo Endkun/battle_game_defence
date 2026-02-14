@@ -6,7 +6,6 @@ const characterChip = new Image()
 characterChip.src = "img/characterChip.png";
 const mikatas = []
 const spawnMikata = document.getElementById("spawnMikata")
-let isHit = false
 let money = 0
 let moneyMax = 1000
 let kankaku = 0
@@ -31,6 +30,7 @@ class Mikata{
         this.mcy = mcy//キャラクターチップy
         this.scale = tag1//身長(低身長か中身長か高身長か),低身長は0~100px 中身長は100~150px,高身長は150px以上
         this.type = tag2//近距離攻撃or遠距離攻撃
+        this.status = "run" //run attack dead
         this.range = 0
         this.atsframe = 0
         this.maxattackspeed = ats
@@ -38,7 +38,6 @@ class Mikata{
         this.kb = 0
         this.maxKb = mkb
         this.kkb = 0
-        this.isHit = false
         if (this.type == "近距離"){
             this.range = 0
         }
@@ -47,19 +46,22 @@ class Mikata{
         }
     }
     update(tekis){
-        this.isHit = false
+        this.status = "run"
         for (let i=0; i < tekis.length; i++){
             teki = tekis[i]
             if (this.x+30-this.range < teki.x + 100 && this.x + 100 > teki.x){
                 //console.log("当たり判定")
                 //console.log(this.range)
                 this.hantei(teki)
-                this.isHit = true
+                this.status = "attack"
                 console.log("a")
                 break//あたったらfor文でbreakすることによりこれ以上動かないようにする
             }
         }
-        if(this.isHit == false){
+        if(this.x <= 150){
+            this.status = "attack"
+        }
+        if(this.status == "run"){
             this.x -= 0.3
         }
         this.draw()
@@ -87,6 +89,7 @@ class Mikata{
         }
         if(this.hp <= 0){
             console.log("死亡")
+            this.status = "dead"
             this.x = -1000
         }
     }
@@ -119,7 +122,7 @@ class Teki{
         this.mcy = mcy//キャラクターチップy
         this.scale = tag1//身長(低身長か中身長か高身長か),低身長は0~100px 中身長は100~150px,高身長は150px以上
         this.type = tag2//近距離攻撃or遠距離攻撃
-        this.isHit = false
+        this.status = "run" //run attack dead
         this.range = 0
         this.atsframe = 0
         this.maxattackspeed = ats
@@ -136,17 +139,20 @@ class Teki{
         }
     }
     update(mikatas){
-        this.isHit = false
+        this.status = "run"
         for (let i=0; i < mikatas.length; i++){
             mikata = mikatas[i]
             if (mikata.x+30 < this.x + 100 && mikata.x + 100 > this.x){
                 //console.log("当たり判定,敵側")
                 this.hantei(mikata)
-                this.isHit = true
+                this.status = "attack"
                 break//あたったらfor文でbreakすることによりこれ以上動かないようにする
             }
         }
-        if (this.isHit == false){
+        if (this.x >= 580){
+            this.status = "attack"    
+        }
+        if (this.status == "run"){
             this.x += 0.3;
         }
         this.draw()
@@ -154,7 +160,7 @@ class Teki{
     hantei(mikata){
         this.atsframe += 1
         this.frame += 1
-        if(this.isHit == true){
+        if(this.status == "attack"){
             if (this.frame>30){
                 this.frame = 0
                 this.maisuu += 1
@@ -181,6 +187,7 @@ class Teki{
         }
         if(this.hp <= 0){
             console.log("死亡")
+            this.status = "dead"
             this.x = 1000
         }
     }
