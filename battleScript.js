@@ -20,8 +20,12 @@ class Mikata{
         this.y = Math.floor(Math.random() * 20) + 450
         this.hp = hp//体力
         this.at = at//攻撃
+        this.sx = 0//昇天x
+        this.sy = 0//昇天y
         this.kemuriChip = new Image()//敵
         this.kemuriChip.src = "img/kemuriChip.png";
+        this.syouten = new Image()
+        this.syouten.src = "img/syouten.png";
         this.frame = 0//煙をアニメーションするために必要なフレーム数
         this.maisuu = 0//煙のChipの枚数
         this.kw = 0 //煙のエフェクト幅
@@ -47,36 +51,40 @@ class Mikata{
     }
 
     update(tekis){
-        let teki = null
-        console.log(this.status)
-        for (let i=0; i < tekis.length; i++){
-            teki = tekis[i]
-            if (this.x+30-this.range < teki.x + 100 && this.x + 100 > teki.x){
-                this.status = "attackChara"
-                break//あたったらfor文でbreakすることによりこれ以上動かないようにする
-            }else{
-                this.status = "run"
+        if (this.status != "dead"){
+            let teki = null
+            console.log(this.status)
+            for (let i=0; i < tekis.length; i++){
+                teki = tekis[i]
+                if (this.x+30-this.range < teki.x + 100 && this.x + 100 > teki.x){
+                    this.status = "attackChara"
+                    break//あたったらfor文でbreakすることによりこれ以上動かないようにする
+                }else{
+                    this.status = "run"
+                }
             }
-        }
-        if(this.x <= 150 && this.x >= 0){
-            this.status = "attackCastle"
-        }
+            if(this.x <= 150 && this.x >= 0){
+                this.status = "attackCastle"
+            }
 
-        if (this.status == "attackChara"){
-            this.hantei(teki)
+            if (this.status == "attackChara"){
+                this.hantei(teki)
+            }
+            if(this.status == "run"){
+                this.x -= 0.3
+            }
+            if (this.status == "knockback"){
+                this.status = "run"
+                this.x += 50
+                this.kb += 1
+            }
+            if(this.status == "dead"){
+                this.sx = this.x
+                this.sy = this.y
+                this.x = -1000
+            }
+            this.draw()
         }
-        if(this.status == "run"){
-            this.x -= 0.3
-        }
-        if (this.status == "knockback"){
-            this.status = "run"
-            this.x += 50
-            this.kb += 1
-        }
-        if(this.status == "dead"){
-            this.x = -1000
-        }
-        this.draw()
     }
     hantei(teki){
         this.frame += 1
@@ -113,6 +121,10 @@ class Mikata{
         if (this.scale == "高身長"){ 
             ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,200,this.x,this.y-100,100,200)
         }
+        if (this.status == "dead"){
+            ctx.drawImage(this.syouten,0,0,100,100,this.sx,this.sy,50,50)
+            this.sy -= 1
+        }
     }
 }
 class Teki{
@@ -121,9 +133,13 @@ class Teki{
         this.y = Math.floor(Math.random() * 20) + 450
         this.hp = hp//体力
         this.at = at//攻撃
+        this.sx = 0//昇天x
+        this.sy = 0//昇天y
         this.tekiChip = tekiChip
         this.kemuriChip = new Image()//敵
         this.kemuriChip.src = "img/kemuriChip.png";
+        this.syouten = new Image()
+        this.syouten.src = "img/syouten.png";
         this.frame = 0//煙をアニメーションするために必要なフレーム数
         this.maisuu = 0//煙のChipの枚数
         this.kw = 0 //煙のエフェクト幅
@@ -149,34 +165,38 @@ class Teki{
         }
     }
     update(mikatas){
-        let mikata = null
-        for (let i=0; i < mikatas.length; i++){
-            mikata = mikatas[i]
-            if (mikata.x+30-this.range < this.x + 100 && mikata.x + 100 > this.x){
-                this.status = "attackChara"
-                break
-            }else{
-                this.status = "run"
+        if (this.status != "dead"){
+            let mikata = null
+            for (let i=0; i < mikatas.length; i++){
+                mikata = mikatas[i]
+                if (mikata.x+30-this.range < this.x + 100 && mikata.x + 100 > this.x){
+                    this.status = "attackChara"
+                    break
+                }else{
+                    this.status = "run"
+                }
             }
+            if (this.x >= 580 && this.x <= 700){
+                this.status = "attackCastle"    
+            }
+            if (this.status == "attackChara"){
+                this.hantei(mikata)
+            }
+            if (this.status == "run"){
+                this.x += 0.3;
+            }
+            if (this.status == "knockback"){
+                this.status = "run"
+                this.x -= 50
+                this.kb += 1
+            }
+            if(this.status == "dead"){
+                this.sx = this.x
+                this.sy = this.y
+                this.x = 1000
+            }
+            this.draw()
         }
-        if (this.x >= 580 && this.x <= 700){
-            this.status = "attackCastle"    
-        }
-        if (this.status == "attackChara"){
-            this.hantei(mikata)
-        }
-        if (this.status == "run"){
-            this.x += 0.3;
-        }
-        if (this.status == "knockback"){
-            this.status = "run"
-            this.x -= 50
-            this.kb += 1
-        }
-        if(this.status == "dead"){
-            this.x = 1000
-        }
-        this.draw()
     }
     hantei(mikata){
         this.atsframe += 1
@@ -207,6 +227,10 @@ class Teki{
     }
     draw(){
         ctx.drawImage(this.tekiChip,0,200,100,100,this.x,this.y,100,100)
+        if (this.status == "dead"){
+            ctx.drawImage(this.syouten,0,0,100,100,this.sx,this.sy,50,50)
+            this.sy -= 1
+        }
     }
 }
 class mikataCastle{
@@ -262,7 +286,7 @@ class tekiCastle{
     draw(){
         ctx.font = "20px Arial";
         ctx.fillStyle = "black";
-        ctx.fillText(this.hp+"/"+this.maxHp, 770, 300);
+        ctx.fillText(this.hp+"/"+this.maxHp, 170, 300);
     }
 }
 function function1(){
@@ -363,6 +387,8 @@ function animation(time){
     }
     mCastle.update(tekis)
     mCastle.draw()
+    tCastle.update(mikatas)
+    tCastle.draw()
     characterButton(50,150,20,1000,1000)
     moneyButton()
     houdaiButton()
