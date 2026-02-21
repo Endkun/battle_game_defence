@@ -35,7 +35,7 @@ class Mikata{
         this.atsframe = 0
         this.maxattackspeed = ats
         this.maxHp = hp
-        this.kb = 0
+        this.kb = 1
         this.maxKb = mkb
         this.kkb = 0
         if (this.type == "近距離"){
@@ -45,28 +45,40 @@ class Mikata{
             this.range = 50
         }
     }
+
     update(tekis){
-        //this.status = "run"
+        let teki = null
+        console.log(this.status)
         for (let i=0; i < tekis.length; i++){
             teki = tekis[i]
             if (this.x+30-this.range < teki.x + 100 && this.x + 100 > teki.x){
-                //console.log("当たり判定")
-                //console.log(this.range)
-                this.hantei(teki)
                 this.status = "attackChara"
-                console.log("a")
                 break//あたったらfor文でbreakすることによりこれ以上動かないようにする
+            }else{
+                this.status = "run"
             }
         }
         if(this.x <= 150 && this.x >= 0){
             this.status = "attackCastle"
         }
+
+        if (this.status == "attackChara"){
+            this.hantei(teki)
+        }
         if(this.status == "run"){
             this.x -= 0.3
         }
+        if (this.status == "knockback"){
+            this.status = "run"
+            this.x += 50
+            this.kb += 1
+        }
+        if(this.status == "dead"){
+            this.x = -1000
+        }
         this.draw()
     }
-    hantei(teki){//当たり判定を受けた時の関数
+    hantei(teki){
         this.frame += 1
         this.atsframe += 1
         if (this.frame>30){
@@ -78,22 +90,17 @@ class Mikata{
             }
         }
         if(this.atsframe >= this.maxattackspeed*10){
-            this.hp -= teki.at
+            teki.hp -= this.at   //攻撃対象修正
             this.atsframe = 0
         }
         ctx.drawImage(this.kemuriChip,this.kw,this.kh,200,200,this.x-20,this.y+40,50,50)
         this.kkb = this.maxHp * (1 - this.kb / this.maxKb)
         if (this.hp <= this.kkb){
-            this.x += 50
-            this.kb += 1
-            this.status = "run"
+            this.status = "knockback"
         }
         if(this.hp <= 0){
             console.log("死亡")
             this.status = "dead"
-        }
-        if(this.status == "dead"){
-            this.x = -1000
         }
     }
     draw(){
@@ -142,18 +149,20 @@ class Teki{
         }
     }
     update(mikatas){
+        let mikata = null
         for (let i=0; i < mikatas.length; i++){
             mikata = mikatas[i]
-            if (mikata.x+30 < this.x + 100 && mikata.x + 100 > this.x){
-                //console.log("当たり判定,敵側")
+            if (mikata.x+30-this.range < this.x + 100 && mikata.x + 100 > this.x){
                 this.status = "attackChara"
-                break//あたったらfor文でbreakすることによりこれ以上動かないようにする
+                break
+            }else{
+                this.status = "run"
             }
         }
         if (this.x >= 580 && this.x <= 700){
             this.status = "attackCastle"    
         }
-        if (this.status == "atackaChara"){
+        if (this.status == "attackChara"){
             this.hantei(mikata)
         }
         if (this.status == "run"){
@@ -170,27 +179,21 @@ class Teki{
         this.draw()
     }
     hantei(mikata){
-        console.log(this.status)
         this.atsframe += 1
         this.frame += 1
-        if(this.status == "attackChara"){
-            if (this.frame>30){
-                this.frame = 0
-                this.maisuu += 1
-                this.kw = 200*this.maisuu
-                if(this.maisuu > 7){
+        if (this.frame>30){
+            this.frame = 0
+            this.maisuu += 1
+            this.kw = 200*this.maisuu
+            if(this.maisuu > 7){
                 this.maisuu = 0 
-                }
             }
-            ctx.filter = "hue-rotate(180deg)";
-            ctx.drawImage(this.kemuriChip,this.kw,this.kh,200,200,this.x+80,this.y-20,50,50)
-            ctx.filter = "none";
         }
-        //console.log("a")
+        ctx.filter = "hue-rotate(180deg)";
+        ctx.drawImage(this.kemuriChip,this.kw,this.kh,200,200,this.x+80,this.y-20,50,50)
+        ctx.filter = "none";
         if(this.atsframe >= this.maxattackspeed*10){
-            //console.log("b")
-            this.hp -= mikata.at
-            console.log("敵側hp",this.hp)
+            mikata.hp -= this.at   //攻撃対象修正
             this.atsframe = 0
         }
         this.kkb = this.maxHp * (1 - this.kb / this.maxKb)
@@ -206,7 +209,6 @@ class Teki{
         ctx.drawImage(this.tekiChip,0,200,100,100,this.x,this.y,100,100)
     }
 }
-
 class mikataCastle{
     constructor(){
         this.hp = 30000
