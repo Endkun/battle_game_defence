@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<canvas id="canvas" width="500" height="300"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+// それぞれの回転角度
+let angle1 = 0;
+let angle2 = 0;
+
+function drawSquare(x, y, angle) {
+
+  ctx.save();
+
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+
+  ctx.fillStyle = "black";
+  ctx.fillRect(-50, -50, 100, 100);
+
+  ctx.restore();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 四角①
+  drawSquare(150, 150, angle1);
+
+  // 四角②
+  drawSquare(350, 150, angle2);
+}
+
+function loop() {
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+
+// キー入力
+document.addEventListener("keydown", e => {
+
+  if (e.key === "1") {
+    angle1 += Math.PI / 4; // 45°
+  }
+
+  if (e.key === "2") {
+    angle2 += Math.PI / 4; // 45°
+  }
+
+});
+</script>
+
+</body>
+</html>
