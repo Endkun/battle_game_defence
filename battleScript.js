@@ -106,7 +106,6 @@ class Mikata{
         this.kkb = this.maxHp * (1 - this.kb / this.maxKb)
         if (this.hp <= this.kkb){
             this.status = "knockback"
-            ctx.rotate(Math.PI / 4); // 45°
         }
         if(this.hp <= 0){
             //console.log("死亡")
@@ -128,13 +127,13 @@ class Mikata{
             ctx.translate(this.x+50,this.y+50)
             ctx.rotate(this.rotation)
             if (this.scale == "低身長"){ 
-                ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,100,this.x,this.y,100,100)
+                ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,100,-50,-50,100,100)
             }
             if (this.scale == "中身長"){ 
-                ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,150,this.x,this.y-50,100,150)
+                ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,150,-50,0,100,150)
             }
             if (this.scale == "高身長"){ 
-                ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,200,this.x,this.y-100,100,200)
+                ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,200,-50,50,100,200)
             }
         }
         ctx.restore();
@@ -148,7 +147,9 @@ class Mikata{
 class Teki{
     constructor(hp,at,ats,mkb,tekiChip,mcx,mcy,tag1,tag2,name){
         this.x = 150
-        this.y = Math.floor(Math.random() * 20) + 450
+        this.sety = Math.floor(Math.random() * 20) + 450
+        this.y = 390
+        this.vy = -3
         this.hp = hp//体力
         this.at = at//攻撃
         this.sx = 0//昇天x
@@ -176,6 +177,9 @@ class Teki{
         this.kkb = 0
         this.name = name
         this.rotation = 0
+        this.maxKnockbackX = 0
+        this.a = 0
+        this.b = false
         if (this.type == "近距離"){
             this.range = 0
         }
@@ -184,16 +188,25 @@ class Teki{
         }
     }
     update(mikatas){
+        this.vy += 0.03
+        this.y += this.vy
+        if (this.y >= this.sety){
+            this.y = this.sety
+            this.vy = 0
+        }
         if (this.status != "dead"){
             let mikata = null
             for (let i=0; i < mikatas.length; i++){
                 mikata = mikatas[i]
-                if (mikata.x+30-this.range < this.x + 100 && mikata.x + 100 > this.x){
-                    this.status = "attackChara"
-                    break
-                }else{
-                    this.status = "run"
+                if (this.b == false){
+                    if (mikata.x+30-this.range < this.x + 100 && mikata.x + 100 > this.x){
+                        this.status = "attackChara"
+                        break
+                    }else{
+                        this.status = "run"
+                    }
                 }
+                
             }
             if (this.x >= 580 && this.x <= 700){
                 this.status = "attackCastle"    
@@ -205,7 +218,7 @@ class Teki{
                 this.x += 0.3;
             }
             if (this.status == "knockback"){
-                this.status = "run"
+                //this.status = "run"
                 this.rotation = -45 * Math.PI / 180
                 this.kb += 1
             }
@@ -214,6 +227,7 @@ class Teki{
                 this.sy = this.y
                 this.x = 1000
             }
+
             this.draw()
         }
     }
@@ -238,6 +252,7 @@ class Teki{
         this.kkb = this.maxHp * (1 - this.kb / this.maxKb)
         if (this.hp <= this.kkb){
             this.status = "knockback"
+            console.log(this.status)
         }
         if(this.hp <= 0){
             //console.log("死亡")
@@ -247,12 +262,23 @@ class Teki{
     draw(){
         ctx.drawImage(this.tekiChip,0,200,100,100,this.x,this.y,100,100)
         if (this.status == "knockback"){
-            ctx.save()
-            ctx.translate(this.x+50,this.y+50)
-            ctx.rotate(this.rotation)
-            ctx.drawImage(this.tekiChip,0,200,100,100,this.x,this.y,100,100)        
+            //ctx.save()
+            //ctx.translate(this.x+50,this.y+50)
+            //ctx.rotate(this.rotation)
+            ctx.drawImage(this.tekiChip,0,200,100,100,-50,-50,100,100)   
+            this.a += 1
+            if (this.a <= 150){
+                this.x -= 0.5
+                this.b = true 
+                if (this.a == 1){
+                    this.vy -= 1
+                }
+            }else{
+                this.b = false
+            }
+            console.log(this.a)
         }
-        ctx.restore();
+        //ctx.restore();
         if (this.status == "dead"){
             ctx.drawImage(this.syouten,0,0,100,100,this.sx,this.sy,50,50)
             this.sy -= 1
@@ -376,6 +402,7 @@ const teki1 = new Teki(50,10,40,2,characterChip,0,0,"低身長","近距離","a")
 const teki2 = new Teki(100,5,40,2,characterChip,0,0,"低身長","近距離","b")
 const teki3 = new Teki(100,10,40,2,characterChip,0,0,"低身長","近距離","c")
 let tekis = [teki1]
+//let saveTekis = []
 let saveTekis = [teki2,teki3]
 let tekiSpawnCount = 0
 const mCastle = new mikataCastle()

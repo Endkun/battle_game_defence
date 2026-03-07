@@ -2,7 +2,7 @@
 <html>
 <body>
 
-<canvas id="canvas" width="500" height="300"></canvas>
+<canvas id="canvas" width="800" height="600"></canvas>
 
 <script>
 const canvas = document.getElementById("canvas");
@@ -11,6 +11,9 @@ const ctx = canvas.getContext("2d");
 // それぞれの回転角度
 let angle1 = 0;
 let angle2 = 0;
+let angle3 = 0;
+let angle4 = 0;
+
 
 function drawSquare(x, y, angle) {
 
@@ -33,6 +36,10 @@ function draw() {
 
   // 四角②
   drawSquare(350, 150, angle2);
+
+  drawSquare(550, 150, angle3);
+
+  drawSquare(750, 150, angle4);
 }
 
 function loop() {
@@ -50,6 +57,13 @@ document.addEventListener("keydown", e => {
 
   if (e.key === "2") {
     angle2 += Math.PI / 4; // 45°
+  }
+  if (e.key === "3") {
+    angle3 += Math.PI / 4; // 45°
+  }
+
+  if (e.key === "4") {
+    angle4 += Math.PI / 4; // 45°
   }
 
 });
