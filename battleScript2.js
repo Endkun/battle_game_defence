@@ -23,8 +23,8 @@ ctx.textAlign = "right";
   味方クラス
 ====================*/
 class Mikata{
-    constructor(hp,at,mikataChip,mcx,mcy,tag1,tag2){
-        this.mikataChip = mikataChip
+    constructor(hp,at,characterChip,mcx,mcy,tag1,tag2){
+        this.characterChip = characterChip
         this.x = instantCanvas.width - 200
         this.y = Math.floor(Math.random() * 20) + 450
 
@@ -74,13 +74,13 @@ class Mikata{
 
     draw(){
         if (this.scale === "低身長"){ 
-            ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,100,this.x,this.y,100,100)
+            ctx.drawImage(this.characterChip,this.mcx,this.mcy,100,100,this.x,this.y,100,100)
         }
         if (this.scale === "中身長"){ 
-            ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,150,this.x,this.y-50,100,150)
+            ctx.drawImage(this.characterChip,this.mcx,this.mcy,100,150,this.x,this.y-50,100,150)
         }
         if (this.scale === "高身長"){ 
-            ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,200,this.x,this.y-100,100,200)
+            ctx.drawImage(this.characterChip,this.mcx,this.mcy,100,200,this.x,this.y-100,100,200)
         }
     }
 }
@@ -89,12 +89,12 @@ class Mikata{
   敵クラス
 ====================*/
 class Teki{
-    constructor(hp,at,tekiChip){
+    constructor(hp,at,characterChip){
         this.x = 150
         this.y = 450
         this.hp = hp
         this.at = at
-        this.tekiChip = tekiChip
+        this.characterChip = characterChip
         this.range = 0   // 敵は射程0
     }
 
@@ -107,7 +107,7 @@ class Teki{
     }
 
     draw(){
-        ctx.drawImage(this.tekiChip,0,200,100,100,this.x,this.y,100,100)
+        ctx.drawImage(this.characterChip,0,200,100,100,this.x,this.y,100,100)
     }
 }
 

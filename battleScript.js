@@ -13,30 +13,28 @@ let kankakuMax = 5
 ctx.font = "30px sans-serif"
 ctx.textBaseline = "top";
 ctx.textAlign = "right";
-class Mikata{
-    constructor(hp,at,ats,mkb,mikataChip,mcx,mcy,tag1,tag2){
-        this.mikataChip = mikataChip //味方
-        this.x = instantCanvas.width-200
+class Character{
+    constructor(team,hp,at,ats,mkb,characterChip,mcx,mcy,scale,attackType,name){
+        //------------------------------キャラ
+        this.characterChip = characterChip
+        this.team = team
+        if(this.team == "kitty"){
+            this.x = instantCanvas.width-200 //味方はinstantCanvas.width-200(右端から200左)固定
+        }
+        if (this.team == "dog"){
+            this.x = 150 //敵は150固定
+        }
         this.sety = Math.floor(Math.random() * 20) + 450
         this.y = this.sety
         this.vy = -3
         this.hp = hp//体力
         this.at = at//攻撃
-        this.sx = 0//昇天x
-        this.sy = 0//昇天y
-        this.kemuriChip = new Image()//敵
-        this.kemuriChip.src = "img/kemuriChip.png";
-        this.syouten = new Image()
-        this.syouten.src = "img/syouten.png";
-        this.frame = 0//煙をアニメーションするために必要なフレーム数
-        this.maisuu = 0//煙のChipの枚数
-        this.kw = 0 //煙のエフェクト幅
-        this.kh = 0//煙のエフェクト高さ
         this.mcx = mcx//キャラクターチップx
         this.mcy = mcy//キャラクターチップy
-        this.scale = tag1//身長(低身長か中身長か高身長か),低身長は0~100px 中身長は100~150px,高身長は150px以上
-        this.type = tag2//近距離攻撃or遠距離攻撃
-        this.status = "run" //run attack dead
+        this.scale = scale//身長(低身長か中身長か高身長か),低身長は0~100px 中身長は100~150px,高身長は150px以上
+        this.type = attackType//近距離攻撃or遠距離攻撃
+        this.status = "run" //キャラのステータス(run attack dead knockback)
+        this.name = name //キャラの名前
         this.range = 0
         this.atsframe = 0
         this.maxattackspeed = ats
@@ -45,16 +43,28 @@ class Mikata{
         this.maxKb = mkb
         this.kkb = 0
         this.rotation = 0  
-        this.a = 0      
+        this.kCount = 0 //knockbackCount
         if (this.type == "近距離"){
             this.range = 0
         }
         if (this.type == "遠距離"){
             this.range = 50
         }
-    }
 
-    update(tekis){
+        //-------------------------------煙
+        this.kemuriChip = new Image()//敵
+        this.kemuriChip.src = "img/kemuriChip.png";  
+        this.frame = 0//煙をアニメーションするために必要なフレーム数
+        this.maisuu = 0//煙のChipの枚数
+        this.kw = 0 //煙のエフェクト幅
+        this.kh = 0//煙のエフェクト高さ
+        //-------------------------------昇天
+        this.syouten = new Image()
+        this.syouten.src = "img/syouten.png"; 
+        this.sx = 0//昇天x
+        this.sy = 0//昇天y         
+    }
+    update(aiteCharas){
         this.vy += 0.03
         this.y += this.vy
         if (this.y >= this.sety){
@@ -62,43 +72,69 @@ class Mikata{
             this.vy = 0
         }
         if (this.status != "dead"){
-            let teki = null
-            //console.log(this.status)
-            for (let i=0; i < tekis.length; i++){
-                teki = tekis[i]
+            let aiteChara = null
+            for (let i=0; i < aiteCharas.length; i++){
+                aiteChara = aiteCharas[i]
                 if (this.status != "knockback"){
-                    if (this.x+30-this.range < teki.x + 100 && this.x + 100 > teki.x){
-                        this.status = "attackChara"
-                        break//あたったらfor文でbreakすることによりこれ以上動かないようにする
-                    }else{
-                        this.status = "run"
+                    if (this.team === "kitty"){
+                        if (this.x+30-this.range < aiteChara.x + 100 && this.x + 100 > aiteChara.x){
+                            this.status = "attackChara"
+                            break//あたったらfor文でbreakすることによりこれ以上動かないようにする
+                        }else{
+                            this.status = "run"
+                        }
+                    }
+                    if (this.team === "dog"){
+                        if (aiteChara.x+30-this.range < this.x + 100 && aiteChara.x + 100 > this.x){
+                            this.status = "attackChara"
+                            break
+                        }else{
+                            this.status = "run"
+                        }
                     }
                 }
+            }     
+            if (this.team === "kitty"){
+                if(this.x <= 150 && this.x >= 0){
+                    this.status = "attackCastle"
+                }
+                if(this.status == "run"){
+                    this.x -= 0.3
+                }
+            }else if(this.team === "dog"){
+                if (this.x >= 580 && this.x <= 700){
+                    this.status = "attackCastle"    
+                }
+                if (this.status == "run"){
+                    this.x += 0.3;
+                }
             }
-            if(this.x <= 150 && this.x >= 0){
-                this.status = "attackCastle"
+            if (this.status == "attackChara"){
+                this.hantei(aiteChara)
             }
 
-            if (this.status == "attackChara"){
-                this.hantei(teki)
-            }
-            if(this.status == "run"){
-                this.x -= 0.3
-            }
             if (this.status == "knockback"){
-                this.status = "run"
-                this.rotation = 45 * Math.PI / 180
+                if (this.team ==="kitty"){
+                    this.rotation = 25 * Math.PI / 180
+                    
+                }else if (this.team == "dog"){
+                    this.rotation = -25 * Math.PI / 180
+                }
                 this.kb += 1
             }
             if(this.status == "dead"){
                 this.sx = this.x
                 this.sy = this.y
-                this.x = -1000
+                if(this.team === "kitty"){
+                    this.x = -1000
+                }else if(this.team === "dog"){
+                    this.x = 1000
+                }
             }
             this.draw()
-        }
+        }          
     }
-    hantei(teki){
+    hantei(aiteChara){
         this.frame += 1
         this.atsframe += 1
         if (this.frame>30){
@@ -110,56 +146,65 @@ class Mikata{
             }
         }
         if(this.atsframe >= this.maxattackspeed*10){
-            teki.hp -= this.at   //攻撃対象修正
+            aiteChara.hp -= this.at   //攻撃対象修正
             this.atsframe = 0
         }
-        ctx.drawImage(this.kemuriChip,this.kw,this.kh,200,200,this.x-20,this.y+40,50,50)
+        if(this.team === "kitty"){
+            ctx.drawImage(this.kemuriChip,this.kw,this.kh,200,200,this.x-20,this.y+40,50,50)
+        }else if(this.team === "dog"){
+            ctx.filter = "hue-rotate(180deg)";
+            ctx.drawImage(this.kemuriChip,this.kw,this.kh,200,200,this.x+80,this.y-20,50,50)
+            ctx.filter = "none";            
+        }
         this.kkb = this.maxHp * (1 - this.kb / this.maxKb)
         if (this.hp <= this.kkb){
             this.status = "knockback"
         }
         if(this.hp <= 0){
-            //console.log("死亡")
             this.status = "dead"
         }
     }
     draw(){
-        console.log(this.status)
         if (this.status == "knockback"){
             ctx.save()
             ctx.translate(this.x+50,this.y+50)
             ctx.rotate(this.rotation)
             if (this.scale == "低身長"){ 
-                ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,100,-50,-50,100,100)
+                ctx.drawImage(this.characterChip,this.mcx,this.mcy,100,100,-50,-50,100,100)
             }
             if (this.scale == "中身長"){ 
-                ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,150,-50,0,100,150)
+                ctx.drawImage(this.characterChip,this.mcx,this.mcy,100,150,-50,0,100,150)
             }
             if (this.scale == "高身長"){ 
-                ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,200,-50,50,100,200)
+                ctx.drawImage(this.characterChip,this.mcx,this.mcy,100,200,-50,-150,100,200)
             }
-            this.a += 1
-            if (this.a <= 150){
-                this.x += 0.5
-                if (this.a == 1){
+            this.kCount += 1
+            if (this.kCount<= 150){
+                if (this.team === "kitty"){
+                    this.x += 0.5
+                }
+                if (this.team === "dog"){
+                    this.x -= 0.5
+                }
+                if (this.kCount== 1){
                     this.vy -= 1
                 }
-                if(this.a >= 150){
+                if(this.kCount>= 150){
                     this.vy -= 1
                 }
             }else{
                 this.status = "run"   
-                this.a = 0
+                this.kCount= 0
             }
         }else{
             if (this.scale == "低身長"){ 
-                ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,100,this.x,this.y,100,100)
+                ctx.drawImage(this.characterChip,this.mcx,this.mcy,100,100,this.x,this.y,100,100)
             }
             if (this.scale == "中身長"){ 
-                ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,150,this.x,this.y-50,100,150)
+                ctx.drawImage(this.characterChip,this.mcx,this.mcy,100,150,this.x,this.y-50,100,150)
             }
             if (this.scale == "高身長"){ 
-                ctx.drawImage(this.mikataChip,this.mcx,this.mcy,100,200,this.x,this.y-100,100,200)
+                ctx.drawImage(this.characterChip,this.mcx,this.mcy,100,200,this.x,this.y-100,100,200)
             }
         }
         ctx.restore();
@@ -167,150 +212,16 @@ class Mikata{
             ctx.drawImage(this.syouten,0,0,100,100,this.sx,this.sy,50,50)
             this.sy -= 1
         }
-    
     }
 }
-class Teki{
-    constructor(hp,at,ats,mkb,tekiChip,mcx,mcy,tag1,tag2,name){
-        this.x = 150
-        this.sety = Math.floor(Math.random() * 20) + 450
-        this.y = 390
-        this.vy = -3
-        this.hp = hp//体力
-        this.at = at//攻撃
-        this.sx = 0//昇天x
-        this.sy = 0//昇天y
-        this.tekiChip = tekiChip
-        this.kemuriChip = new Image()//敵
-        this.kemuriChip.src = "img/kemuriChip.png";
-        this.syouten = new Image()
-        this.syouten.src = "img/syouten.png";
-        this.frame = 0//煙をアニメーションするために必要なフレーム数
-        this.maisuu = 0//煙のChipの枚数
-        this.kw = 0 //煙のエフェクト幅
-        this.kh = 0//煙のエフェクト高さ
-        this.mcx = mcx//キャラクターチップx
-        this.mcy = mcy//キャラクターチップy
-        this.scale = tag1//身長(低身長か中身長か高身長か),低身長は0~100px 中身長は100~150px,高身長は150px以上
-        this.type = tag2//近距離攻撃or遠距離攻撃
-        this.status = "run" //run attack dead
-        this.range = 0
-        this.atsframe = 0
-        this.maxattackspeed = ats
-        this.maxHp = hp
-        this.kb = 1
-        this.maxKb = mkb
-        this.kkb = 0
-        this.name = name
-        this.rotation = 0
-        this.maxKnockbackX = 0
-        this.a = 0
-        if (this.type == "近距離"){
-            this.range = 0
-        }
-        if (this.type == "遠距離"){
-            this.range = 50
-        }
+class Mikata extends Character{
+    constructor(team,hp,at,ats,mkb,characterChip,mcx,mcy,scale,attackType,name){
+        super(team,hp,at,ats,mkb,characterChip,mcx,mcy,scale,attackType,name)
     }
-    update(mikatas){
-        this.vy += 0.03
-        this.y += this.vy
-        if (this.y >= this.sety){
-            this.y = this.sety
-            this.vy = 0
-        }
-        if (this.status != "dead"){
-            let mikata = null
-            for (let i=0; i < mikatas.length; i++){
-                mikata = mikatas[i]
-                if (this.status != "knockback"){
-                    if (mikata.x+30-this.range < this.x + 100 && mikata.x + 100 > this.x){
-                        this.status = "attackChara"
-                        break
-                    }else{
-                        this.status = "run"
-                    }
-                }
-                
-            }
-            if (this.x >= 580 && this.x <= 700){
-                this.status = "attackCastle"    
-            }
-            if (this.status == "attackChara"){
-                this.hantei(mikata)
-            }
-            if (this.status == "run"){
-                this.x += 0.3;
-            }
-            if (this.status == "knockback"){
-                //this.status = "run"
-                this.rotation = -25 * Math.PI / 180
-                this.kb += 1
-            }
-            if(this.status == "dead"){
-                this.sx = this.x
-                this.sy = this.y
-                this.x = 1000
-            }
-
-            this.draw()
-        }
-    }
-    hantei(mikata){
-        this.atsframe += 1
-        this.frame += 1
-        if (this.frame>30){
-            this.frame = 0
-            this.maisuu += 1
-            this.kw = 200*this.maisuu
-            if(this.maisuu > 7){
-                this.maisuu = 0 
-            }
-        }
-        ctx.filter = "hue-rotate(180deg)";
-        ctx.drawImage(this.kemuriChip,this.kw,this.kh,200,200,this.x+80,this.y-20,50,50)
-        ctx.filter = "none";
-        if(this.atsframe >= this.maxattackspeed*10){
-            mikata.hp -= this.at   //攻撃対象修正
-            this.atsframe = 0
-        }
-        this.kkb = this.maxHp * (1 - this.kb / this.maxKb)
-        if (this.hp <= this.kkb){
-            this.status = "knockback"
-            console.log(this.status)
-        }
-        if(this.hp <= 0){
-            //console.log("死亡")
-            this.status = "dead"
-        }
-    }
-    draw(){
-        if (this.status == "knockback"){
-            ctx.save()
-            ctx.translate(this.x+50,this.y+50)
-            ctx.rotate(this.rotation)
-            ctx.drawImage(this.tekiChip,0,200,100,100,-50,-50,100,100)
-            this.a += 1
-            if (this.a <= 150){
-                this.x -= 0.5
-                if (this.a == 1){
-                    this.vy -= 1
-                }
-                if(this.a >= 150){
-                    this.vy -= 1
-                }
-            }else{
-                this.status = "run"   
-                this.a = 0
-            }
-        }else{
-            ctx.drawImage(this.tekiChip,0,200,100,100,this.x,this.y,100,100)
-        }
-        ctx.restore();
-        if (this.status == "dead"){
-            ctx.drawImage(this.syouten,0,0,100,100,this.sx,this.sy,50,50)
-            this.sy -= 1
-        }
+}
+class Teki extends Character{
+    constructor(team,hp,at,ats,mkb,characterChip,mcx,mcy,scale,attackType,name){
+        super(team,hp,at,ats,mkb,characterChip,mcx,mcy,scale,attackType,name)
     }
 }
 class mikataCastle{
@@ -371,14 +282,14 @@ class tekiCastle{
 }
 function function1(){
     console.log("あ")
-    mikatas.push(new Mikata(50,10,50,2,characterChip,0,0,"低身長","近距離"))
+    mikatas.push(new Mikata("kitty",50,10,50,2,characterChip,0,0,"低身長","近距離","キティ"))
     
 }
 function function2(){
-    mikatas.push(new Mikata(50,25,50,2,characterChip,0,100,"低身長","近距離"))
+    mikatas.push(new Mikata("kitty",50,25,50,2,characterChip,0,100,"低身長","近距離","バトルキティ"))
 }
 function function3(){
-    mikatas.push(new Mikata(100,20,100,4,characterChip,0,300,"高身長","遠距離"))
+    mikatas.push(new Mikata("kitty",100,20,100,4,characterChip,0,300,"高身長","遠距離","ギャルキティ"))
     console.log("う")
 }
 function function4(){
@@ -426,9 +337,9 @@ characterChip.onload = function(){
     animation()
 }
 //------------------
-const teki1 = new Teki(50,10,40,2,characterChip,0,0,"低身長","近距離","a")
-const teki2 = new Teki(100,5,40,2,characterChip,0,0,"低身長","近距離","b")
-const teki3 = new Teki(100,10,40,2,characterChip,0,0,"低身長","近距離","c")
+const teki1 = new Teki("dog",50,10,40,2,characterChip,0,200,"低身長","近距離","a")
+const teki2 = new Teki("dog",100,5,40,2,characterChip,0,200,"低身長","近距離","b")
+const teki3 = new Teki("dog",100,10,40,2,characterChip,0,200,"低身長","近距離","c")
 let tekis = [teki1]
 //let saveTekis = []
 let saveTekis = [teki2,teki3]
